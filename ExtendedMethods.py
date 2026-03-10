@@ -19,41 +19,18 @@ import glob
 
 #Check for trigger files and if found, set up trigger. #CUSTOMISE THIS#
 def processTriggers(downloadedFiles):
+
+    unzipList = ['TasNetworks_LGAs.zip']
+
+    #email message text.
+    messageText = ''  
     
     if(len(downloadedFiles) == 0):
         globals.logging.info("No files downloaded, so no script triggers checked.")
         return '',globals.logging
         
-    #Lists of triggers for FME scripts.
-    fmeTrigger = 0 #FME Script Triggers
-    twTrigger = 0 #TW script trigger
-    
-    #email message text.
-    messageText = ''
-    
-    fmeTriggerList = ['Private_leases.zip',    'leases.zip',    'licences.zip',    'pluc.zip',    'lga_reserves.zip',    'transport.zip']
-    TasWaterTriggerList = ['TasWater_Assets.zip']
-    unzipList = ['TasNetworks_LGAs.zip']
-    
-    #Required: Buildings, Heritage, Kerbs, stormwaterpipes, stormwaterpits
-    monthlyFilesList = [\
-        "D:\\GIS\\Projects\\External\\Scheduled\\LIST_ftp\\Upload\\Buildings",\
-        "TopographicInformation\\Cultural\\Heritage",\
-        "TopographicInformation\\Transport\\kerbs",\
-		"TopographicInformation\\Transport\\TrafficManagementDevice",\
-        "TopographicInformation\\Infrastructure\\Stormwater\\Stormwaterpipes",\
-        "TopographicInformation\\Infrastructure\\Stormwater\\Stormwaterpits"]
-    
     for j in downloadedFiles:
         print('downloaded: ', j)
-        #monthly script
-        for k in fmeTriggerList:
-            if(k == j):
-                fmeTrigger = 1
-        #Tas Water script
-        for l in TasWaterTriggerList:
-            if(l == j):
-                twTrigger = 1
         #unzip list
         for o in unzipList:
             if(o == j):
@@ -63,81 +40,6 @@ def processTriggers(downloadedFiles):
                     # Create the directory
                     os.makedirs(unzipTo)
                 unzip(fullLocalFile, unzipTo)
-
-    if(fmeTrigger):
-        globals.logging.info("Downloaded an FME trigger layer, triggering the FME script.")
-        os.system("C:\Scripts\FME\monthly.cmd")
-        globals.logging.info("FME Monthly Script has been run.")
-        
-        globals.logging.info("Zipping and Uploading Data.")
-        
-        rootDir = "D:\GIS\Corporate"
-        sentItems = []
-        
-        #connect to FTP
-        connected = 0
-        
-        globals.logging.info('Connecting to FTP site for Upload')            
-        ftp = ftplib.FTP(globals.SITE)
-        ftp.login(globals.UN,globals.PW)
-        connected = 1
-        
-        #remove existing zip files
-        for fl in glob.glob("D:\\GIS\\Projects\\External\\Scheduled\\LIST_ftp\\Upload\\*.zip"):
-            os.remove(fl)
-        
-        if(connected):
-            for uploadItem in monthlyFilesList:
-                #Set up files for monthly upload...                
-                destFile = uploadItem.split('\\')[-1] + ".zip"
-                sentItems.append(destFile)
-                if (not "C:\\" in uploadItem):
-                    source = os.path.join(rootDir, uploadItem) + ".*"
-                else:
-                    source = uploadItem + ".*"
-
-                destination = os.path.join("D:\GIS\Projects\External\Scheduled\LIST_ftp\\Upload", destFile)
-                
-                print('creating archive')
-                zf = zipfile.ZipFile(destination, mode='w')
-                try:
-                    for fl in glob.glob(source):
-                        if(os.path.splitext(fl)[1] == '.zip'): continue
-                        print(fl)
-                        zf.write(fl,os.path.basename(fl),compress_type=zipfile.ZIP_DEFLATED)
-                finally:
-                    print('closing')
-                    zf.close()
-            
-                fp = open(destination,'rb') # open file to send
-                ftp.storbinary('STOR dpiwe_upload/{0}'.format(destFile), fp)
-            
-            globals.logging.info("GCC Data uploaded to The LIST. Notifying them of datasets uploaded.")
-            
-            #email The LIST
-            subjectTextLIST = "GCC Data Supply"    
-            messageTextLIST = "Hi there \n\nWe supplied:\n"
-            for i in sentItems:
-                messageTextLIST = messageTextLIST + "* " + i + "\n"
-            messageTextLIST = messageTextLIST + "\nRegards,\n\nGCC GIS\ngis@gcc.tas.gov.au"
-            
-            sendEmail(globals.emailAddress, globals.emailAddressLIST, subjectTextLIST, messageTextLIST, "0")
-            globals.logging.info("Email sent to The LIST")
-            ftp.quit()
-        else:
-            globals.logging.warning("Monthly data upload FAILED!")
-            messageText = messageText + "\n\nWarning: Monthly data upload FAILED!\n"
-			
-    if(twTrigger):
-        globals.logging.info("Downloaded a TasWater trigger layer, triggering the FME script.")
-        os.system("C:\\Scripts\\FME\\tasWater.cmd")
-        globals.logging.info("TasWater Script has been run.")
-
-    if(fmeTrigger):
-        messageText = messageText + "\n\nNOTE: FME script was run, data were uploaded to The LIST.\nCheck for other data to upload this month, update the Data Dictionary and notify The List.\n"
-
-    if(twTrigger):
-        messageText = messageText + "\n\nNOTE: TasWater script was run. Update the Data Dictionary and check Exponare.\n"
 
     return messageText, globals.logging
     

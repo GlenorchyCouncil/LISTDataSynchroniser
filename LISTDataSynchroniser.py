@@ -55,7 +55,6 @@ remoteDirs = [dir.strip() for dir in dirString.split(',')]
 warnText = ""
 subjectText = "FTP Download Script Run"
 messageText = ""
-triggerText = ""
 
 # lists
 localFileList = []
@@ -124,9 +123,8 @@ if (connected):
     globals.logging.info("%i file matches found, not downloading." %countMatches)
     
     #process triggers, optional step
-    triggerText = ''
     if(processTriggersScript):
-        triggerText, globals.logging = ExtendedMethods.processTriggers(globals.downloadedFiles)
+        globals.logging = ExtendedMethods.processTriggers(globals.downloadedFiles)
         
     #Determine which files are no longer on the server.
     for i in localFileList:
@@ -151,8 +149,6 @@ else:
 ##email details##
 for i in globals.downloadedFiles:
     messageText = messageText + "\n- %s" %i
-
-messageText += triggerText
 
 if(len(warnText) > 1):
     messageText = messageText + "\n\n~~~Warning!~~~\n" + warnText
