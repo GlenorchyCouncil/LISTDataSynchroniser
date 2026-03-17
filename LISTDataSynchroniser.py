@@ -124,7 +124,7 @@ if (connected):
     
     #process triggers, optional step
     if(processTriggersScript):
-        globals.logging = ExtendedMethods.processTriggers(globals.downloadedFiles)
+        messageText = ExtendedMethods.processTriggers(globals.downloadedFiles)
         
     #Determine which files are no longer on the server.
     for i in localFileList:

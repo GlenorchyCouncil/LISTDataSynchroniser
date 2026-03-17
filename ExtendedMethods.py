@@ -1,7 +1,7 @@
 ####=================####
 #Author: Alex Leith, Duri Bradshaw
-#Date: 2024-08-15
-#Version: 0.0.2
+#Date: 2026-03-17
+#Version: 0.0.3
 #Purpose: Gets methods out of the main body. There is a custom 'processTriggers' method that needs to be removed for most people.
 ####=================####
 
@@ -27,7 +27,7 @@ def processTriggers(downloadedFiles):
     
     if(len(downloadedFiles) == 0):
         globals.logging.info("No files downloaded, so no script triggers checked.")
-        return '',globals.logging
+        return ''
         
     for j in downloadedFiles:
         print('downloaded: ', j)
@@ -41,7 +41,7 @@ def processTriggers(downloadedFiles):
                     os.makedirs(unzipTo)
                 unzip(fullLocalFile, unzipTo)
 
-    return messageText, globals.logging
+    return messageText
     
 #OTHER METHODS
 ##METHODS##
